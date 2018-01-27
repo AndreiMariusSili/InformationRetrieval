@@ -108,6 +108,7 @@ def main():
         """
 
         data = collections.defaultdict(list)
+        mapped_data = collections.defaultdict(list)
         scores = collections.defaultdict(lambda: collections.defaultdict(lambda: 0))
 
         print('Preprocessing using', model_name)
@@ -125,13 +126,14 @@ def main():
                     scores[query_id][ext_doc_id] += preprocess_fn(int_doc_id, query_term_id, doc_term_freq)
 
                 if scores[query_id][ext_doc_id] != 0:
-                    data[query_id].append(int_doc_id)
+                    data[query_id].append((scores[query_id][ext_doc_id], ext_doc_id, int_doc_id))
 
         for query_id, query in list(tokenized_queries.items()):
             data[query_id] = sorted(data[query_id], reverse=True)[0:1000]
+            mapped_data[query_id] = list(map(lambda item: item[2], data[query_id]))
+
         print('Preprocessing took {} seconds.'.format(time.time() - preprocess_start_time))
-        print(data[list(data.keys())[0]])
-        return data
+        return mapped_data
 
     def run_retrieval(model_name, score_fn):
         """
@@ -529,4 +531,8 @@ class PositionalLanguageModel:
 
 
 if __name__ == '__main__':
-    main()
+    # main()
+    index = pyndri.Index('index/')
+    with open('pickles/preprocessed_tfidf_collection.pkl', 'rb') as file:
+        data = pickle.load(file)
+    print([index.document(int_doc_id)[0] for int_doc_id in data['51']])
