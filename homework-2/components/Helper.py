@@ -3,7 +3,6 @@ import io
 import time
 import logging
 import sys
-import os
 import pyndri
 import pickle
 
@@ -132,6 +131,10 @@ try:
         unique_terms_per_document = pickle.load(f)
     with open('../pickles/avg_doc_length.pkl', 'rb') as f:
         avg_doc_length = pickle.load(f)
+    with open('../pickles/int_to_ext.pkl', 'rb') as f:
+        int_to_ext_dict = pickle.load(f)
+    with open('../pickles/ext_to_int.pkl', 'rb') as f:
+        ext_to_int_dict = pickle.load(f)
     print('Success!')
 except FileNotFoundError:
     print('Error!')
@@ -141,10 +144,16 @@ except FileNotFoundError:
     inverted_index = collections.defaultdict(dict)
     collection_frequencies = collections.defaultdict(int)
 
+    int_to_ext_dict = collections.defaultdict(int)
+    ext_to_int_dict = collections.defaultdict(int)
+
     total_terms = 0
 
     for int_doc_id in range(index.document_base(), index.maximum_document()):
         ext_doc_id, doc_token_ids = index.document(int_doc_id)
+
+        int_to_ext_dict[int_doc_id] = ext_doc_id
+        ext_to_int_dict[ext_doc_id] = int_doc_id
 
         document_bow = collections.Counter(token_id for token_id in doc_token_ids if token_id > 0)
         document_length = sum(document_bow.values())
@@ -180,5 +189,9 @@ except FileNotFoundError:
         pickle.dump(unique_terms_per_document, f)
     with open('../pickles/avg_doc_length.pkl', 'wb') as f:
         pickle.dump(avg_doc_length, f)
+    with open('../pickles/int_to_ext.pkl', 'wb') as f:
+        pickle.dump(int_to_ext_dict, f)
+    with open('../pickles/ext_to_int.pkl', 'wb') as f:
+        pickle.dump(ext_to_int_dict, f)
     print('Success!')
 
