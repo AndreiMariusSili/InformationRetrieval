@@ -26,6 +26,7 @@ def run_retrieval(model_name, score_fn, doc_col):
 
     # The dictionary data should have the form: query_id --> [(document_score, external_doc_id)]
     for query_id, int_doc_ids in doc_col.items():
+        qst = time.time()
         for int_doc_id in int_doc_ids:
             ext_doc_id, doc = index.document(int_doc_id)
             query = tokenized_queries[query_id]
@@ -34,6 +35,7 @@ def run_retrieval(model_name, score_fn, doc_col):
 
             if scores[query_id][ext_doc_id] != 0:
                 data[query_id].append((scores[query_id][ext_doc_id], ext_doc_id))
+        print('Query {} took {}.'.format(query_id, time.time() - qst))
 
     with open(run_out_path, 'w') as f_out:
         write_run(
@@ -161,7 +163,7 @@ class GeneralizedLanguageModel:
         col_term_freq = self.col_freq[query_term_id]
         return col_term_freq / self.col_size
 
-    def compute_doc_transform(self, query_term_id: int, int_doc_id: int, doc: tuple) -> float:
+    def compute_doc_transform(self, query_term_id: int, int_doc_id: int, doc: tuple) -> np.ndarray:
         """Compute document noisy channel transform.
 
         Args:
@@ -183,15 +185,8 @@ class GeneralizedLanguageModel:
         dot_prod = np.dot(doc_model, query_vec)
         norms = np.linalg.norm(doc_model, axis=1).reshape(-1, 1)
         similarities = dot_prod / norms / np.linalg.norm(query_vec)
-        doc_transform = float(np.sum(similarities * term_frequencies / (self.doc_sim_sum[int_doc_id] * self.doc_len[int_doc_id])))
-        # for doc_term_id in doc:
-        #     if doc_term_id != 0:
-        #         doc_vec = self.word2vec.wv[self.id2token[doc_term_id]]
-        #
-        #         similarity = self.cos_sim(query_vec, doc_vec)
-        #         term_freq = sum(np.array(doc) == doc_term_id)
-        #
-        #         doc_transform += (similarity * term_freq / (self.doc_sim_sum[int_doc_id] * self.doc_len[int_doc_id]))
+        doc_transform = np.sum(
+            similarities * term_frequencies / (self.doc_sim_sum[int_doc_id] * self.doc_len[int_doc_id]))
 
         return doc_transform
 
@@ -277,7 +272,7 @@ class GeneralizedLanguageModel:
 
 
 if __name__ == '__main__':
-    with open('../pickles/preprocessed_tfidf_collection.pkl', 'rb') as file:
+    with open('../pickles/prepro_doc_col_q10_top1000_tfidf.pkl', 'rb') as file:
         doc_col = pickle.load(file)
         glm = GeneralizedLanguageModel(index=index, inverted_index=inverted_index, queries=tokenized_queries,
                                        doc_col=doc_col, col_freq=collection_frequencies, doc_len=document_lengths,
