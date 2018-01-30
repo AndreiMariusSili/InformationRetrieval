@@ -1,5 +1,6 @@
 from components.Helper import *
 from models.PositionalLanguageModel import PositionalLanguageModel
+from models.GeneralizedLanguageModel import GeneralizedLanguageModel
 
 
 def run_retrieval(model_name, score_fn, doc_col=None):
@@ -77,6 +78,7 @@ if __name__ == '__main__':
     name = None
     fn = None
 
+    # PLM
     with open('../pickles/preprocessed_tfidf_collection.pkl', 'rb') as file:
         doc_col = pickle.load(file)
         max_len = 0

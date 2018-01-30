@@ -45,7 +45,7 @@ class PositionalLanguageModel:
         self.index = index
         self.inverted_index = inverted_index
         self.col_freq = col_freq
-        self.col_size = index.maximum_document() - index.document_base()
+        self.col_size = sum(col_freq)
         self.doc_len = doc_len
         self.max_len = max_len
         self.sigma = sigma
