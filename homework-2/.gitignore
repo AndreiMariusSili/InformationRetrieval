@@ -1,1 +1,5 @@
 word2vec
+models/lda*
+models/new_lsi*
+pickles/LDA*
+pickles/LSI*
