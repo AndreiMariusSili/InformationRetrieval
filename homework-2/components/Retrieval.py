@@ -79,7 +79,7 @@ if __name__ == '__main__':
     fn = None
 
     # PLM
-    with open('../pickles/preprocessed_tfidf_collection.pkl', 'rb') as file:
+    with open('../pickles/prepro_doc_col_q150_top1000_tfidf.pkl', 'rb') as file:
         doc_col = pickle.load(file)
         max_len = 0
         for query_id, int_doc_ids in doc_col.items():
