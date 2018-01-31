@@ -47,13 +47,11 @@ class DataLoader(object):
 
     def drop_rows_with_null(self):
         """Drop the rows containing null values."""
-        i = 0
-        for idx, row in self.df.iterrows():
-            if row.isnull().any():
-                i += 1
-                self.df.drop(idx, inplace=True, axis=0)
+        initial_length = self.data_length
 
-        print("{} rows dropped. DataFrame length:".format(i), end="")
+        self.df.dropna(axis=0, inplace=True)
+
+        print("{} rows dropped. DataFrame length:".format(initial_length - self.data_length), end="")
         print(self.data_length)
 
     def load_additional_features(self):
@@ -169,10 +167,10 @@ class TrainingDataLoader(DataLoader):
         self.load_relevance_labels(relevance_file)
 
 
-class TestingDataLoader(DataLoader):
+class ValidatingDataLoader(DataLoader):
     def __init__(self, ranked_data: dict, index: pyndri.Index, models: list, rel_file: str,
                  doc_len: dict, int_to_ext_dict: dict, ext_to_int_dict: dict, queries: list):
-        super(TestingDataLoader, self).__init__(ranked_data, index, doc_len, int_to_ext_dict, ext_to_int_dict, queries)
+        super(ValidatingDataLoader, self).__init__(ranked_data, index, doc_len, int_to_ext_dict, ext_to_int_dict, queries)
 
         self.create_df(rel_file)
         self.load_data(models)
@@ -181,7 +179,7 @@ class TestingDataLoader(DataLoader):
         self.df = pd.DataFrame(columns=['query_id', 'int_doc_id', 'ext_doc_id', 'relevance_label'])
         lookup_indices = []
 
-        with open('../retrievals/tfidf.run', 'r') as file:
+        with open('../retrievals/TF-IDF.run', 'r') as file:
             for line in file.readlines():
                 query_id, _, ext_doc_id, _, __, ___ = line.split()
 
@@ -212,13 +210,13 @@ class TestingDataLoader(DataLoader):
 
 
 if __name__ == '__main__':
-    action = 'get_train_data'
+    # action = 'get_train_data'
     action = 'get_valdation_data'
 
-    tfidf_data = dict(load_pickle('../pickles/prepro_doc_col_q10_top1000_tfidf.pkl'))
+    tfidf_data = dict(load_pickle('../pickles/prepro_doc_col_q50_top1000_tfidf.pkl'))
     index = pyndri.Index('../index/')
 
-    models = ['tfidf', 'LDA', 'LSI', 'dp_mu_500', 'glm']
+    models = ['TF-IDF', 'LDA', 'LSI', 'dp_mu_500', 'GLM']
     training_rel_file = '../ap_88_89/qrel_test'
     validate_rel_file = '../ap_88_89/qrel_validation'
 
@@ -229,10 +227,10 @@ if __name__ == '__main__':
                                          queries=tokenized_queries)
         data_loader.save_dataframe('../pickles/LTR_DF_Training.pkl')
     elif action == 'get_valdation_data':
-        data_loader = TestingDataLoader(ranked_data=tfidf_data, index=index, models=models,
-                                        rel_file=validate_rel_file, doc_len=document_lengths,
-                                        int_to_ext_dict=int_to_ext_dict, ext_to_int_dict=ext_to_int_dict,
-                                        queries=tokenized_queries)
+        data_loader = ValidatingDataLoader(ranked_data=tfidf_data, index=index, models=models,
+                                           rel_file=validate_rel_file, doc_len=document_lengths,
+                                           int_to_ext_dict=int_to_ext_dict, ext_to_int_dict=ext_to_int_dict,
+                                           queries=tokenized_queries)
         data_loader.save_dataframe('../pickles/LTR_DF_Validation.pkl')
     else:
         print("Action not known")
