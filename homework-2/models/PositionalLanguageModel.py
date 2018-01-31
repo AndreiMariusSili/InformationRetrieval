@@ -203,7 +203,7 @@ class PositionalLanguageModel:
 
 if __name__ == '__main__':
 
-    with open('../pickles/prepro_doc_col_q150_top1000_tfidf.pkl', 'rb') as file:
+    with open('../pickles/prepro_doc_col_q50_top1000_tfidf.pkl', 'rb') as file:
         doc_col = pickle.load(file)
         max_len = 0
         for query_id, int_doc_ids in doc_col.items():
@@ -214,4 +214,4 @@ if __name__ == '__main__':
         positionalModel = PositionalLanguageModel(Helper.index, Helper.inverted_index, Helper.tokenized_queries,
                                                   Helper.collection_frequencies, Helper.document_lengths, max_len,
                                                   50, 1000, 'gaussian')
-        positionalModel.run('plm_top1000_sigma50_my1000', doc_col)
+        positionalModel.run('plm_top1000_sigma50_mu1000', doc_col)
